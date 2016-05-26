@@ -64,7 +64,8 @@ object Hugh {
   def perform(
     path: Path,
     roResolution: Int, thResolution: Int,
-    isDot: Int => Boolean = defaultIsDot
+    isDot: Int => Boolean = defaultIsDot,
+    thRange: immutable.Seq[Range] = immutable.Seq()
   ): immutable.IndexedSeq[FoundLine] = {
     val img: BufferedImage = ImageIO.read(path.toFile)
     val width: Int = img.getWidth
@@ -84,8 +85,8 @@ object Hugh {
     }
 
     val diagonal = sqrt(width * width + height * height)
-    val roQuantizer: Quantizer = new Quantizer(min = -diagonal, max = diagonal, resolution = roResolution)
-    val thQuantizer: Quantizer = new Quantizer(max = Pi, resolution = thResolution)
+    val roQuantizer: Quantizer = new Quantizer(roResolution, Range(-diagonal, diagonal))
+    val thQuantizer: Quantizer = new Quantizer(thResolution, (if (thRange.isEmpty) Seq(Range(max = Pi)) else thRange): _*)
     val (sin: Array[Double], cos: Array[Double]) = sinCosTable(thResolution)
     val vote: Array[Array[Int]] = Array.ofDim[Int](roResolution, thResolution)
 
