@@ -27,11 +27,11 @@ object Hugh {
 
   def defaultIsDot(rgb: Int): Boolean = rgbToBrightness(rgb) <= 127
 
-  private def sinCosTable(resolution: Int): (Array[Double], Array[Double]) = {
-    val sin = new Array[Double](resolution)
-    val cos = new Array[Double](resolution)
-    for (idx <- 0 until resolution) {
-      val th: Double = Pi * idx / resolution
+  private def sinCosTable(thQuantizer: Quantizer): (Array[Double], Array[Double]) = {
+    val sin = new Array[Double](thQuantizer.resolution)
+    val cos = new Array[Double](thQuantizer.resolution)
+    for (idx <- 0 until thQuantizer.resolution) {
+      val th: Double = thQuantizer.fromIndex(idx)
       sin(idx) = Math.sin(th)
       cos(idx) = Math.cos(th)
     }
@@ -87,13 +87,12 @@ object Hugh {
     val diagonal = sqrt(width * width + height * height)
     val roQuantizer: Quantizer = new Quantizer(roResolution, Range(-diagonal, diagonal))
     val thQuantizer: Quantizer = new Quantizer(thResolution, (if (thRange.isEmpty) Seq(Range(max = Pi)) else thRange): _*)
-    val (sin: Array[Double], cos: Array[Double]) = sinCosTable(thResolution)
+    val (sin: Array[Double], cos: Array[Double]) = sinCosTable(thQuantizer)
     val vote: Array[Array[Int]] = Array.ofDim[Int](roResolution, thResolution)
 
     findDots { p =>
       for (thIdx <- 0 until thResolution) {
-        val th = thQuantizer.fromIndex(thIdx)
-        val ro: Double = p.x * cos(th) + p.y * sin(th)
+        val ro: Double = p.x * cos(thIdx) + p.y * sin(thIdx)
         vote(roQuantizer.toIndex(ro))(thIdx) += 1
       }
     }

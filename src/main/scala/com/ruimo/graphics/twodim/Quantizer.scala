@@ -85,7 +85,7 @@ import scala.collection.Searching._
 // From index.
 // Assume idx = 100
 // As idx >= resolution, value = range2.max = 3
-class Quantizer(resolution: Int, range: Range*) {
+class Quantizer(val resolution: Int, range: Range*) {
   require(! range.isEmpty)
 
   val (
