@@ -92,7 +92,8 @@ object Hugh {
 
     findDots { p =>
       for (thIdx <- 0 until thResolution) {
-        val ro: Double = p.x * cos(thIdx) + p.y * sin(thIdx)
+        val th = thQuantizer.fromIndex(thIdx)
+        val ro: Double = p.x * cos(th) + p.y * sin(th)
         vote(roQuantizer.toIndex(ro))(thIdx) += 1
       }
     }
