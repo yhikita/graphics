@@ -11,18 +11,22 @@ case class Bits2d(width: Int, height: Int, bits: immutable.BitSet) {
 
 object Bits2d {
   def apply(
-    img: BufferedImage, threshold: Int,
+    img: BufferedImage, threshold: Int = 128,
     area: Option[Rectangle] = None
   ): Bits2d = {
-    val builder = immutable.BitSet.newBuilder
     val rect: Rectangle = area.getOrElse(Rectangle(0, 0, img.getWidth, img.getHeight))
+    val builder = immutable.BitSet.newBuilder
+    builder.sizeHint(rect.width * rect.height)
+    builder.clear()
     var idx = 0
 
     for {
-      x <- rect.x until rect.x + rect.width
       y <- rect.y until rect.y + rect.height
+      x <- rect.x until rect.x + rect.width
     } {
-      if (Rgb(img.getRGB(x, y)).brightness >= threshold) builder += idx
+      if (Rgb(img.getRGB(x, y)).brightness >= threshold) {
+        builder += idx
+      }
       idx += 1
     }
 
