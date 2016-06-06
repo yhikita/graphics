@@ -5,8 +5,8 @@ import java.awt.image.BufferedImage
 
 import scala.collection.immutable
 
-case class Bits2d(width: Int, height: Int, bits: immutable.BitSet) {
-  def apply(x: Int, y: Int): Boolean = bits(x + y * width)
+case class Bits2d(offsetX: Int, offsetY: Int, width: Int, height: Int, bits: immutable.BitSet) {
+  def apply(x: Int, y: Int): Boolean = bits(x - offsetX + (y - offsetY) * width)
 }
 
 object Bits2d {
@@ -30,7 +30,7 @@ object Bits2d {
       idx += 1
     }
 
-    Bits2d(rect.width, rect.height, builder.result())
+    Bits2d(rect.x, rect.y, rect.width, rect.height, builder.result())
   }
 }
 
