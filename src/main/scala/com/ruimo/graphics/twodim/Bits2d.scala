@@ -7,14 +7,12 @@ import scala.collection.immutable
 
 case class Bits2d(
   offsetX: Int, offsetY: Int, width: Int, height: Int,
-  rect: Rectangle, bits: immutable.BitSet
+  visibleRect: Rectangle, bits: immutable.BitSet
 ) {
   def apply(x: Int, y: Int): Boolean = {
-    if (! rect.contains(x, y))
-      throw new IllegalArgumentException("(" + x + ", " + y + ") is out of bounds " + rect)
-    val ret = bits(x - offsetX + (y - offsetY) * width)
-    println("bits (" + x + ", " + y + ") = " + ret)
-    ret
+    if (! visibleRect.contains(x, y))
+      throw new IllegalArgumentException("(" + x + ", " + y + ") is out of bounds " + visibleRect)
+    bits(x - offsetX + (y - offsetY) * visibleRect.width)
   }
 }
 
@@ -39,7 +37,7 @@ object Bits2d {
       idx += 1
     }
 
-    Bits2d(rect.x, rect.y, rect.width, rect.height, rect, builder.result())
+    Bits2d(rect.x, rect.y, img.getWidth, img.getHeight, rect, builder.result())
   }
 }
 
