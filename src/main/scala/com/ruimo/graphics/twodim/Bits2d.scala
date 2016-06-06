@@ -12,7 +12,9 @@ case class Bits2d(
   def apply(x: Int, y: Int): Boolean = {
     if (! rect.contains(x, y))
       throw new IllegalArgumentException("(" + x + ", " + y + ") is out of bounds " + rect)
-    bits(x - offsetX + (y - offsetY) * width)
+    val ret = bits(x - offsetX + (y - offsetY) * width)
+    println("bits (" + x + ", " + y + ") = " + ret)
+    ret
   }
 }
 
