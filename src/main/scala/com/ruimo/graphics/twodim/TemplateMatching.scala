@@ -40,7 +40,10 @@ object TemplateMatching {
       xoffset <- xstart to xend
     } {
       @tailrec def finder(x: Int, y: Int, sumError: Int): Option[Offset] =
-        if (sumError > maxError) None
+        if (sumError > maxError) {
+          println("xstart = " + xstart + ", ystart = " + ystart + ", x = " + x + ", " + "y = " + y + ", sumError = " + sumError)
+          None
+        }
         else {
           val error: Int = if (canvas(x + xoffset, y + yoffset) != template(x, y)) 1 else 0
           val newx = x + 1
