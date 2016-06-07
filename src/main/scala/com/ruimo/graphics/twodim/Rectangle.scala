@@ -6,5 +6,10 @@ case class Rectangle(
   def contains(xx: Int, yy: Int): Boolean =
     x <= xx && xx < x + width &&
     y <= yy && yy < y + height
+
+  def +(offset: Offset): Rectangle = copy(
+    x = x + offset.x,
+    y = y + offset.y
+  )
 }
 
