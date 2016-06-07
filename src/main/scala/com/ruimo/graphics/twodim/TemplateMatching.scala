@@ -39,6 +39,7 @@ object TemplateMatching {
       yoffset <- ystart to yend
       xoffset <- xstart to xend
     } {
+      println("xoffset = " + xoffset + ", yoffset = " + yoffset)
       @tailrec def finder(x: Int, y: Int, sumError: Int): Option[Offset] =
         if (sumError > maxError) {
           println("xstart = " + xstart + ", ystart = " + ystart + ", x = " + x + ", " + "y = " + y + ", sumError = " + sumError)
