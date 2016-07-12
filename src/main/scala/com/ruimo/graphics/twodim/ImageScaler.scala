@@ -3,11 +3,11 @@ package com.ruimo.graphics.twodim
 import java.awt.image.{BufferedImage, ImageObserver}
 
 object ImageScaler {
-  def scale(img: BufferedImage, factor: Double): BufferedImage = {
+  def scale(img: BufferedImage, factor: Double, imgType: Option[Int] = None): BufferedImage = {
     val ret = new BufferedImage(
       (img.getWidth * factor + 0.5).toInt,
       (img.getHeight * factor + 0.5).toInt,
-      img.getType
+      imgType.getOrElse(img.getType)
     )
 
     val completed = ret.createGraphics.drawImage(

@@ -1,14 +1,16 @@
 package com.ruimo.graphics.twodim
 
-
 import java.awt.image.BufferedImage
 
 import scala.collection.immutable
 
 case class Bits2d(
-  offsetX: Int, offsetY: Int, width: Int, height: Int,
+  width: Int, height: Int,
   visibleRect: Rectangle, bits: immutable.BitSet
 ) {
+  val offsetX: Int = visibleRect.x
+  val offsetY: Int = visibleRect.y
+
   def apply(x: Int, y: Int): Boolean = {
     if (! visibleRect.contains(x, y))
       throw new IllegalArgumentException("(" + x + ", " + y + ") is out of bounds " + visibleRect)
@@ -17,6 +19,12 @@ case class Bits2d(
 }
 
 object Bits2d {
+  def errorInRaster(
+    src: Bits2d, dest: Bits2d, dstOffsetX: Int, dstOffsetY: Int
+  ): Int = {
+    0
+  }
+
   def apply(
     img: BufferedImage, threshold: Int = 128,
     area: Option[Rectangle] = None
@@ -37,7 +45,7 @@ object Bits2d {
       idx += 1
     }
 
-    Bits2d(rect.x, rect.y, img.getWidth, img.getHeight, rect, builder.result())
+    Bits2d(img.getWidth, img.getHeight, rect, builder.result())
   }
 }
 
