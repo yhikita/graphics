@@ -36,39 +36,44 @@ object TemplateMatching {
     find(canvas, template, maxError, xstart, ystart, xend, yend)
   }
 
-var idx = 0
-
-def save(bits: Bits2d, idx: Int, name: String) {
-  val buf = new BufferedImage(bits.visibleRect.width, bits.visibleRect.height, BufferedImage.TYPE_INT_BGR)
-  val g = buf.createGraphics()
-  for {
-    x <- 0 until bits.visibleRect.width
-    y <- 0 until bits.visibleRect.height
-  } {
-    val vx = x + bits.visibleRect.x
-    val vy = y + bits.visibleRect.y
-    if (bits(vx, vy)) {
-      g.setColor(Color.BLACK)
-    } else {
-      g.setColor(Color.WHITE)
+  private def save(bits: Bits2d, tstamp: Long, name: String) {
+    val buf = new BufferedImage(bits.visibleRect.width, bits.visibleRect.height, BufferedImage.TYPE_INT_BGR)
+    val g = buf.createGraphics()
+    for {
+      x <- 0 until bits.visibleRect.width
+      y <- 0 until bits.visibleRect.height
+    } {
+      val vx = x + bits.visibleRect.x
+      val vy = y + bits.visibleRect.y
+      if (bits(vx, vy)) {
+        g.setColor(Color.BLACK)
+      } else {
+        g.setColor(Color.WHITE)
+      }
+      g.drawLine(x, y, x, y)
     }
-    g.drawLine(x, y, x, y)
+    ImageIO.write(buf, "png", new File("/tmp/bits" + name + tstamp))
   }
-  ImageIO.write(buf, "png", new File("/tmp/bits" + name + idx))
-}
 
   def find(
     canvas: Bits2d, template: Bits2d, maxError: Int,
     xstart: Int, ystart: Int, xend: Int, yend: Int
   ): Option[Offset] = {
-println("idx = " + idx)
-println("xstart = " + xstart)
-println("ystart = " + ystart)
-println("xend = " + xend)
-println("yend = " + yend)
-save(canvas, idx, "canvas")
-save(template, idx, "template")
-idx += 1
+    if (System.getProperty("DEBUG_TEMPLATE_MATCHING") != null) {
+      val tstamp = System.currentTimeMillis
+      println("xstart = " + xstart)
+      println("ystart = " + ystart)
+      println("xend = " + xend)
+      println("yend = " + yend)
+      println("canvas.width = " + canvas.width)
+      println("canvas.height = " + canvas.height)
+      println("canvas.visibleRect = " + canvas.visibleRect)
+      println("template.width = " + template.width)
+      println("template.height = " + template.height)
+      println("template.visibleRect = " + template.visibleRect)
+      save(canvas, tstamp, "canvas")
+      save(template, tstamp, "template")
+    }
 
     for {
       yoffset <- ystart to yend
