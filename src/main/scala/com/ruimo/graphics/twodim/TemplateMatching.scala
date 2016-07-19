@@ -41,15 +41,18 @@ var idx = 0
 def save(bits: Bits2d, idx: Int, name: String) {
   val buf = new BufferedImage(bits.visibleRect.width, bits.visibleRect.height, BufferedImage.TYPE_INT_BGR)
   val g = buf.createGraphics()
-  g.setColor(Color.BLACK)
   for {
     x <- 0 until bits.visibleRect.width
     y <- 0 until bits.visibleRect.height
   } {
     val vx = x + bits.visibleRect.x
     val vy = y + bits.visibleRect.y
-    if (bits(vx, vy))
-      g.drawLine(x, y, x, y)
+    if (bits(vx, vy)) {
+      g.setColor(Color.BLACK)
+    } else {
+      g.setColor(Color.WHITE)
+    }
+    g.drawLine(x, y, x, y)
   }
   ImageIO.write(buf, "png", new File("/tmp/bits" + name + idx))
 }
