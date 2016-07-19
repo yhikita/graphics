@@ -61,6 +61,7 @@ object TemplateMatching {
   ): Option[Offset] = {
     if (System.getProperty("DEBUG_TEMPLATE_MATCHING") != null) {
       val tstamp = System.currentTimeMillis
+      println("tstamp = " + tstamp)
       println("xstart = " + xstart)
       println("ystart = " + ystart)
       println("xend = " + xend)
