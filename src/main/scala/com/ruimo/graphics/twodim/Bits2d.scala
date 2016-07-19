@@ -26,7 +26,7 @@ object Bits2d {
   }
 
   def apply(
-    img: BufferedImage, threshold: Int = 128,
+    img: BufferedImage, threshold: Int = 200,
     area: Option[Rectangle] = None
   ): Bits2d = {
     val rect: Rectangle = area.getOrElse(Rectangle(0, 0, img.getWidth, img.getHeight))
