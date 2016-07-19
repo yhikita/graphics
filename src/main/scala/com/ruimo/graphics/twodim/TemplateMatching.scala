@@ -1,6 +1,11 @@
 package com.ruimo.graphics.twodim
 
 import scala.annotation.tailrec
+import java.awt.image.BufferedImage
+import java.awt.Graphics2D
+import java.awt.Color
+import java.io.File
+import javax.imageio.ImageIO
 
 object TemplateMatching {
   def find(
@@ -31,10 +36,37 @@ object TemplateMatching {
     find(canvas, template, maxError, xstart, ystart, xend, yend)
   }
 
+var idx = 0
+
+def save(bits: Bits2d, idx: Int, name: String) {
+  val buf = new BufferedImage(bits.visibleRect.width, bits.visibleRect.height, BufferedImage.TYPE_INT_BGR)
+  val g = buf.createGraphics()
+  g.setColor(Color.BLACK)
+  for {
+    x <- 0 until bits.visibleRect.width
+    y <- 0 until bits.visibleRect.height
+  } {
+    val vx = x + bits.visibleRect.x
+    val vy = y + bits.visibleRect.y
+    if (bits(vx, vy))
+      g.drawLine(x, y, x, y)
+  }
+  ImageIO.write(buf, "png", new File("/tmp/bits" + name + idx))
+}
+
   def find(
     canvas: Bits2d, template: Bits2d, maxError: Int,
     xstart: Int, ystart: Int, xend: Int, yend: Int
   ): Option[Offset] = {
+println("idx = " + idx)
+println("xstart = " + xstart)
+println("ystart = " + ystart)
+println("xend = " + xend)
+println("yend = " + yend)
+save(canvas, idx, "canvas")
+save(template, idx, "template")
+idx += 1
+
     for {
       yoffset <- ystart to yend
       xoffset <- xstart to xend
