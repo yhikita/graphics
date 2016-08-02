@@ -18,6 +18,7 @@ object TemplateMatching {
       println("canvas.height = " + canvas.height)
       println("template.width = " + template.width)
       println("template.height = " + template.height)
+      println("limit = " + limit)
     }
 
     if (canvas.width < template.width) return None
