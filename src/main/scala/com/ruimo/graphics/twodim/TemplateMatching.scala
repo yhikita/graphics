@@ -6,6 +6,7 @@ import java.awt.Graphics2D
 import java.awt.Color
 import java.io.File
 import javax.imageio.ImageIO
+import java.nio.file.Paths
 
 object TemplateMatching {
   def find(
@@ -37,22 +38,7 @@ object TemplateMatching {
   }
 
   private def save(bits: Bits2d, tstamp: Long, name: String) {
-    val buf = new BufferedImage(bits.visibleRect.width, bits.visibleRect.height, BufferedImage.TYPE_INT_BGR)
-    val g = buf.createGraphics()
-    for {
-      x <- 0 until bits.visibleRect.width
-      y <- 0 until bits.visibleRect.height
-    } {
-      val vx = x + bits.visibleRect.x
-      val vy = y + bits.visibleRect.y
-      if (bits(vx, vy)) {
-        g.setColor(Color.BLACK)
-      } else {
-        g.setColor(Color.WHITE)
-      }
-      g.drawLine(x, y, x, y)
-    }
-    ImageIO.write(buf, "png", new File("/tmp/bits" + name + tstamp))
+    bits.save(Paths.get("/tmp/bits" + name + tstamp))
   }
 
   def find(

@@ -86,10 +86,13 @@ class TemplateMatchingSpec extends Specification {
         ) / 2
       )
 
+      val shrinkedBodyBits = Bits2d(shrinkedImg)
+      val shrinkedTemplateBits = Bits2d(shrinkedTemplate)
+
       val found: Option[Offset] = TemplateMatching.find(
-        Bits2d(shrinkedImg),
-        Bits2d(shrinkedTemplate),
-        maxError = 30
+        shrinkedBodyBits,
+        shrinkedTemplateBits,
+        maxError = 50
       )
 
       found === Some(Offset(71, 205))

@@ -11,5 +11,13 @@ case class Rectangle(
     x = x + offset.x,
     y = y + offset.y
   )
+
+  def clip(maxX: Int, maxY: Int): Rectangle = {
+    val newX = if (maxX < x) maxX else x
+    val newWidth = if (maxX < newX + width) maxX - newX else width
+    val newY = if (maxY < y) maxY else y
+    val newHeight = if (maxY < newY + height) maxY - newY else height
+    Rectangle(newX, newY, newWidth, newHeight)
+  }
 }
 

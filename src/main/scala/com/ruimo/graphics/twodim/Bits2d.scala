@@ -1,6 +1,9 @@
 package com.ruimo.graphics.twodim
 
+import java.awt.Color
+import javax.imageio.ImageIO
 import java.awt.image.BufferedImage
+import java.nio.file.Path
 
 import scala.collection.immutable
 
@@ -15,6 +18,25 @@ case class Bits2d(
     if (! visibleRect.contains(x, y))
       throw new IllegalArgumentException("(" + x + ", " + y + ") is out of bounds " + visibleRect)
     bits(x - offsetX + (y - offsetY) * visibleRect.width)
+  }
+
+  def save(path: Path, imageType: String = "png") {
+    val buf = new BufferedImage(visibleRect.width, visibleRect.height, BufferedImage.TYPE_INT_BGR)
+    val g = buf.createGraphics()
+    for {
+      x <- 0 until visibleRect.width
+      y <- 0 until visibleRect.height
+    } {
+      val vx = x + visibleRect.x
+      val vy = y + visibleRect.y
+      if (apply(vx, vy)) {
+        g.setColor(Color.BLACK)
+      } else {
+        g.setColor(Color.WHITE)
+      }
+      g.drawLine(x, y, x, y)
+    }
+    ImageIO.write(buf, imageType, path.toFile)
   }
 }
 
