@@ -13,6 +13,13 @@ object TemplateMatching {
     canvas: Bits2d, template: Bits2d, maxError: Int,
     limit: Option[Rectangle] = None
   ): Option[Offset] = {
+    if (System.getProperty("DEBUG_TEMPLATE_MATCHING") != null) {
+      println("canvas.width = " + canvas.width)
+      println("canvas.height = " + canvas.height)
+      println("template.width = " + template.width)
+      println("template.height = " + template.height)
+    }
+
     if (canvas.width < template.width) return None
     if (canvas.height < template.height) return None
 
@@ -27,6 +34,11 @@ object TemplateMatching {
         x + w - template.width,
         y + h - template.height
       )
+    }
+
+    if (System.getProperty("DEBUG_TEMPLATE_MATCHING") != null) {
+      println("xend = " + xend)
+      println("yend = " + yend)
     }
 
     if (xend < 0) return None
