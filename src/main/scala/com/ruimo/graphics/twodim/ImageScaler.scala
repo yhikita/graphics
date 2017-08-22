@@ -7,7 +7,7 @@ object ImageScaler {
     val ret = new BufferedImage(
       (img.getWidth * factor + 0.5).toInt,
       (img.getHeight * factor + 0.5).toInt,
-      imgType.getOrElse(img.getType)
+      imgType.getOrElse(if (img.getType == 0) BufferedImage.TYPE_3BYTE_BGR else img.getType) // Quick hack. Image type sometimes becomes invalid value(0).
     )
 
     val completed = ret.createGraphics.drawImage(

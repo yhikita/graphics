@@ -75,37 +75,6 @@ object TemplateMatching {
       save(template, tstamp, "template")
     }
 
-    for {
-      yoffset <- ystart to yend
-      xoffset <- xstart to xend
-    } {
-      @tailrec def finder(x: Int, y: Int, sumError: Int): Option[Offset] =
-        if (sumError > maxError) {
-          None
-        }
-        else {
-          val error: Int = if (canvas(x + xoffset, y + yoffset) != template(x, y)) 1 else 0
-          val newx = x + 1
-          if (newx >= template.width) {
-            val newy = y + 1
-            if (newy >= template.height) {
-              Some(Offset(xoffset, yoffset))
-            }
-            else {
-              finder(0, newy, error + sumError)
-            }
-          }
-          else {
-            finder(newx, y, error + sumError)
-          }
-        }
-
-      finder(0, 0, 0) match {
-        case s: Some[Offset] => return s
-        case None => {}
-      }
-    }
-
-    None
+    canvas.find(template, maxError, xstart, ystart, xend, yend)
   }
 }

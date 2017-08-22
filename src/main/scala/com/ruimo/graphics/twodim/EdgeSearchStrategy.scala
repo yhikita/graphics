@@ -1,7 +1,5 @@
 package com.ruimo.graphics.twodim
 
-import com.ruimo.graphics.twodim.Rgb
-
 import scala.collection.immutable
 
 trait EdgeSearchStrategy {

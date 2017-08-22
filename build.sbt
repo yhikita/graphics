@@ -2,7 +2,9 @@ name := """graphics"""
 
 organization := "com.ruimo"
 
-scalaVersion := "2.11.8"
+crossScalaVersions := List("2.11.8", "2.12.3") 
+
+scalaVersion := "2.12.3"
 
 resolvers += "ruimo.com" at "http://static.ruimo.com/release"
 
@@ -13,9 +15,6 @@ publishTo := Some(
   )
 )
 
-// Change this to another test framework if you prefer
-libraryDependencies ++= Seq("org.specs2" %% "specs2-core" % "3.8.2" % "test")
-
 scalacOptions in Test ++= Seq("-Yrangepos")
 
 // Uncomment to use Akka
@@ -23,8 +22,9 @@ scalacOptions in Test ++= Seq("-Yrangepos")
 
 // Logging
 libraryDependencies ++= Seq(
-  "com.ruimo" %% "scoins" % "1.10",
+  "com.ruimo" %% "scoins" % "1.12",
   "ch.qos.logback" % "logback-core" % "1.1.3",
   "ch.qos.logback" % "logback-classic" % "1.1.3",
-  "org.slf4j" % "slf4j-api" % "1.7.12"
+  "org.slf4j" % "slf4j-api" % "1.7.12",
+  "org.specs2" %% "specs2-core" % "3.9.4" % "test"
 )

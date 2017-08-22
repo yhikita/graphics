@@ -1,5 +1,6 @@
 package com.ruimo.graphics.twodim
 
+import scala.annotation.tailrec
 import java.awt.Color
 import javax.imageio.ImageIO
 import java.awt.image.BufferedImage
@@ -7,9 +8,9 @@ import java.nio.file.Path
 
 import scala.collection.immutable
 
-case class Bits2d(
-  width: Int, height: Int,
-  visibleRect: Rectangle, bits: immutable.BitSet
+class Bits2d(
+  val width: Int, val height: Int,
+  val visibleRect: Rectangle, bits: immutable.BitSet
 ) {
   val offsetX: Int = visibleRect.x
   val offsetY: Int = visibleRect.y
@@ -37,6 +38,44 @@ case class Bits2d(
       g.drawLine(x, y, x, y)
     }
     ImageIO.write(buf, imageType, path.toFile)
+  }
+
+  def find(
+    tofind: Bits2d, maxError: Int,
+    xstart: Int, ystart: Int, xend: Int, yend: Int
+  ): Option[Offset] = {
+    for {
+      yoffset <- ystart to yend
+      xoffset <- xstart to xend
+    } {
+      @tailrec def finder(x: Int, y: Int, sumError: Int): Option[Offset] =
+        if (sumError > maxError) {
+          None
+        }
+        else {
+          val error: Int = if (this(x + xoffset, y + yoffset) != tofind(x, y)) 1 else 0
+          val newx = x + 1
+          if (newx >= tofind.width) {
+            val newy = y + 1
+            if (newy >= tofind.height) {
+              Some(Offset(xoffset, yoffset))
+            }
+            else {
+              finder(0, newy, error + sumError)
+            }
+          }
+          else {
+            finder(newx, y, error + sumError)
+          }
+        }
+
+      finder(0, 0, 0) match {
+        case s: Some[Offset] => return s
+        case None => {}
+      }
+    }
+
+    None
   }
 }
 
@@ -67,7 +106,7 @@ object Bits2d {
       idx += 1
     }
 
-    Bits2d(img.getWidth, img.getHeight, rect, builder.result())
+    new Bits2d(img.getWidth, img.getHeight, rect, builder.result())
   }
 }
 
