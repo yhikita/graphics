@@ -10,7 +10,7 @@ case class Area(
     (imageHeight * y / 100).asInstanceOf[Int],
     (imageWidth * w / 100).asInstanceOf[Int],
     (imageHeight * h / 100).asInstanceOf[Int]
-    )
+  )
 }
 
 object Area {
