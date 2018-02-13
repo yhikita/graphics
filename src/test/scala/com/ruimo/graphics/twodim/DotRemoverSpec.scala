@@ -536,10 +536,6 @@ class DotRemoverSpec extends Specification {
         for (y <- 0 to 4)
           (img0.getRGB(x, y) & 0xffffff) === 0xffffff
 
-
-      val b = ImageIO.read(new File("/tmp/miz/J3_19990930_0581_20140401_COMTOPDF_000001-001.png"))
-      DotRemover.removeDots(13, 250, b)
-      ImageIO.write(b, "png", new File("/tmp/miz/J3_19990930_0581_20140401_COMTOPDF_000001-001-out.png"))
       1 === 1
     }
 
