@@ -7,7 +7,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import scala.annotation.tailrec
-import scala.collection.{immutable => imm}
+import scala.collection.{immutable => imm, mutable => mut}
 
 case class Point(x: Int, y: Int)
 
@@ -65,7 +65,7 @@ object Hugh {
   }
 
   private def sortWithDots(
-    vote: Array[Array[imm.Set[(Int, Int)]]], roQuantizer: Quantizer, thQuantizer: Quantizer
+    vote: Array[Array[mut.ArrayBuffer[(Int, Int)]]], roQuantizer: Quantizer, thQuantizer: Quantizer
   ): imm.IndexedSeq[FoundLineWithDots] = {
     val size = vote.size * vote(0).size
     val buf = new Array[FoundLineWithDots](size)
@@ -77,7 +77,7 @@ object Hugh {
       buf(idx) = FoundLineWithDots(
         roQuantizer.fromIndex(roIdx),
         rotate90(thQuantizer.fromIndex(thIdx)),
-        vote(roIdx)(thIdx)
+        vote(roIdx)(thIdx).toSet
       )
       idx += 1
     }
@@ -161,16 +161,16 @@ object Hugh {
     val roQuantizer: Quantizer = new Quantizer(roResolution, Range(-diagonal, diagonal))
     val thQuantizer: Quantizer = new Quantizer(thResolution, (if (thRange.isEmpty) Seq(Range(max = Pi)) else thRange): _*)
     val (sin: Array[Double], cos: Array[Double]) = sinCosTable(thQuantizer)
-    val vote: Array[Array[imm.Set[(Int, Int)]]] = Array.ofDim[imm.Set[(Int, Int)]](roResolution, thResolution)
+    val vote: Array[Array[mut.ArrayBuffer[(Int, Int)]]] = Array.ofDim[mut.ArrayBuffer[(Int, Int)]](roResolution, thResolution)
     for {
       ro <- 0 until roResolution
       th <- 0 until thResolution
-    } vote(ro)(th) = imm.Set()
+    } vote(ro)(th) = mut.ArrayBuffer()
 
     findDots { p =>
       for (thIdx <- 0 until thResolution) {
         val ro: Double = p.x * cos(thIdx) + p.y * sin(thIdx)
-        vote(roQuantizer.toIndex(ro))(thIdx) = vote(roQuantizer.toIndex(ro))(thIdx) + ((p.x, p.y))
+        vote(roQuantizer.toIndex(ro))(thIdx) += (p.x -> p.y)
       }
     }
     sortWithDots(vote, roQuantizer, thQuantizer)
