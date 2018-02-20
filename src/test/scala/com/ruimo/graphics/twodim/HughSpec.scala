@@ -14,7 +14,18 @@ import Math.{PI => Pi}
 class HughSpec extends Specification {
   "Hugh" should {
     "Detect horizontal line" in {
-      val file: Path = Files.createTempFile(null, ".jpg")
+      // ■■■■■■■■■□
+      // □□□□□□□□□□
+      // □□□□□□□□□□
+      // □□□□□□□□□□
+      // □□□□□□□□□□
+      // □□□□□□□□□□
+      // □□□□□□□□□□
+      // □□□□□□□□□□
+      // □□□□□□□□□□
+      // □□□□□□□□□□
+      // θ = 0
+     val file: Path = Files.createTempFile(null, ".jpg")
       file.toFile.deleteOnExit
       val bi = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB)
       val g: Graphics2D = bi.createGraphics()
@@ -32,6 +43,17 @@ class HughSpec extends Specification {
     }
 
     "Detect vertical line" in {
+      // □■□□□□□□□□
+      // □■□□□□□□□□
+      // □■□□□□□□□□
+      // □■□□□□□□□□
+      // □■□□□□□□□□
+      // □■□□□□□□□□
+      // □■□□□□□□□□
+      // □■□□□□□□□□
+      // □■□□□□□□□□
+      // □□□□□□□□□□
+      // θ=π/2
       val file: Path = Files.createTempFile(null, ".jpg")
       file.toFile.deleteOnExit
       val bi = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB)
@@ -50,6 +72,17 @@ class HughSpec extends Specification {
     }
 
     "Detect diagnoal line" in {
+      // ■□□□□□□□□□
+      // □■□□□□□□□□
+      // □□■□□□□□□□
+      // □□□■□□□□□□
+      // □□□□■□□□□□
+      // □□□□□■□□□□
+      // □□□□□□■□□□
+      // □□□□□□□■□□
+      // □□□□□□□□■□
+      // □□□□□□□□□□
+      // θ=π/4
       val file: Path = Files.createTempFile(null, ".jpg")
       file.toFile.deleteOnExit
       val bi = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB)

@@ -7,12 +7,15 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import scala.annotation.tailrec
-import scala.collection.immutable
+import scala.collection.{immutable => imm}
 
 case class Point(x: Int, y: Int)
 
 object Hugh {
   case class FoundLine(ro: Double, th: Double, count: Int)
+  case class FoundLineWithDots(ro: Double, th: Double, dots: imm.Set[(Int, Int)]) {
+    val count = dots.size
+  }
 
   // Brightness 0-255
   def rgbToBrightness(rgb: Int): Int = rgbToBrightness(new Color(rgb))
@@ -42,7 +45,7 @@ object Hugh {
 
   private def sort(
     vote: Array[Array[Int]], roQuantizer: Quantizer, thQuantizer: Quantizer
-  ): immutable.IndexedSeq[FoundLine] = {
+  ): imm.IndexedSeq[FoundLine] = {
     val size = vote.size * vote(0).size
     val buf = new Array[FoundLine](size)
     var idx = 0
@@ -61,13 +64,46 @@ object Hugh {
     buf.filter(_.count > 0).sortBy(- _.count).toIndexedSeq
   }
 
+  private def sortWithDots(
+    vote: Array[Array[imm.Set[(Int, Int)]]], roQuantizer: Quantizer, thQuantizer: Quantizer
+  ): imm.IndexedSeq[FoundLineWithDots] = {
+    val size = vote.size * vote(0).size
+    val buf = new Array[FoundLineWithDots](size)
+    var idx = 0
+    for {
+      roIdx <- 0 until vote.size
+      thIdx <- 0 until vote(0).size
+    } {
+      buf(idx) = FoundLineWithDots(
+        roQuantizer.fromIndex(roIdx),
+        rotate90(thQuantizer.fromIndex(thIdx)),
+        vote(roIdx)(thIdx)
+      )
+      idx += 1
+    }
+
+    buf.filter(_.count > 0).sortBy(- _.count).toIndexedSeq
+  }
+
   def perform(
     path: Path,
     roResolution: Int, thResolution: Int,
     isDot: Int => Boolean = defaultIsDot,
-    thRange: immutable.Seq[Range] = immutable.Seq()
-  ): immutable.IndexedSeq[FoundLine] = {
-    val img: BufferedImage = ImageIO.read(path.toFile)
+    thRange: imm.Seq[Range] = imm.Seq()
+  ): imm.IndexedSeq[FoundLine] = {
+    performImage(
+      ImageIO.read(path.toFile),
+      roResolution, thResolution,
+      isDot, thRange
+    )
+  }
+
+  def performImage(
+    img: BufferedImage,
+    roResolution: Int, thResolution: Int,
+    isDot: Int => Boolean = defaultIsDot,
+    thRange: imm.Seq[Range] = imm.Seq()
+  ): imm.IndexedSeq[FoundLine] = {
     val width: Int = img.getWidth
     val height: Int = img.getHeight
     def findDots(f: Point => Unit) {
@@ -97,5 +133,46 @@ object Hugh {
       }
     }
     sort(vote, roQuantizer, thQuantizer)
+  }
+
+  def performImageWithDots(
+    img: BufferedImage,
+    roResolution: Int, thResolution: Int,
+    isDot: Int => Boolean = defaultIsDot,
+    thRange: imm.Seq[Range] = imm.Seq()
+  ): imm.IndexedSeq[FoundLineWithDots] = {
+    val width: Int = img.getWidth
+    val height: Int = img.getHeight
+    def findDots(f: Point => Unit) {
+      val line = new Array[Int](width)
+      @tailrec def scan(x: Int, y: Int) {
+        if (y >= height) return
+        if (x == 0) img.getRGB(0, y, width, 1, line, 0, width)
+        if (isDot(line(x))) f(Point(x, y))
+        val nextX = x + 1
+        if (nextX >= line.length) scan(0, y + 1)
+        else scan(nextX, y)
+      }
+
+      scan(0, 0)
+    }
+
+    val diagonal = sqrt(width * width + height * height)
+    val roQuantizer: Quantizer = new Quantizer(roResolution, Range(-diagonal, diagonal))
+    val thQuantizer: Quantizer = new Quantizer(thResolution, (if (thRange.isEmpty) Seq(Range(max = Pi)) else thRange): _*)
+    val (sin: Array[Double], cos: Array[Double]) = sinCosTable(thQuantizer)
+    val vote: Array[Array[imm.Set[(Int, Int)]]] = Array.ofDim[imm.Set[(Int, Int)]](roResolution, thResolution)
+    for {
+      ro <- 0 until roResolution
+      th <- 0 until thResolution
+    } vote(ro)(th) = imm.Set()
+
+    findDots { p =>
+      for (thIdx <- 0 until thResolution) {
+        val ro: Double = p.x * cos(thIdx) + p.y * sin(thIdx)
+        vote(roQuantizer.toIndex(ro))(thIdx) = vote(roQuantizer.toIndex(ro))(thIdx) + ((p.x, p.y))
+      }
+    }
+    sortWithDots(vote, roQuantizer, thQuantizer)
   }
 }

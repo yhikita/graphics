@@ -19,5 +19,7 @@ case class Rectangle(
     val newHeight = if (maxY < newY + height) maxY - newY else height
     Rectangle(newX, newY, newWidth, newHeight)
   }
+
+  val area: Int = width * height
 }
 
