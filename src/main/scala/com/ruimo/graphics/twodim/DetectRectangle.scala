@@ -21,7 +21,6 @@ object DetectRectangle {
     maxAngleToDetect: Double = 1.0, roResolution: Int = 3000, thetaResolution: Int = 200,
     lineCount: Int = 100, errorAllowance: Int = 10
   ): Option[Rectangle] = {
-println("start findLargest")
     val rangeVertical = imm.Seq(
       Range(min = toRadian(-maxAngleToDetect), max = toRadian(maxAngleToDetect)),
       Range(min = toRadian(180 - maxAngleToDetect), max = Pi)
@@ -31,16 +30,13 @@ println("start findLargest")
       Range(min = toRadian(90 - maxAngleToDetect / 2), max = toRadian(90 + maxAngleToDetect / 2))
     )
 
-println("start hugh vertical")
     val foundVertical: imm.IndexedSeq[FoundLineWithDots] = Hugh.performImageWithDots(
       image, roResolution, thetaResolution, thRange = rangeVertical
     )
 
-println("start hugh horizontal")
     val foundHorizontal: imm.IndexedSeq[FoundLineWithDots] = Hugh.performImageWithDots(
       image, roResolution, thetaResolution, thRange = rangeHorizontal
     )
-println("Hugh conversion end")
     sealed trait DetectedLine {
       val sortedDots: List[(Int, Int)]
       val dots: imm.Set[(Int, Int)]
@@ -128,11 +124,9 @@ println("Hugh conversion end")
     def splitNonConsecutiveVLine(lines: imm.Seq[VerticalLine]): imm.Seq[VerticalLine] = lines.flatMap(_.split)
     def splitNonConsecutiveHLine(lines: imm.Seq[HorizontalLine]): imm.Seq[HorizontalLine] = lines.flatMap(_.split)
 
-println("Start distinct()")
     val resultVertical = distinct(foundVertical.take(lineCount).map(l => VerticalLine(l.dots)))
     val resultHorizontal = distinct(foundHorizontal.take(lineCount).map(l => HorizontalLine(l.dots)))
 
-println("End distinct()")
     val splitVertical: imm.Seq[VerticalLine] = splitNonConsecutiveVLine(resultVertical)
     val splitHorizontal: imm.Seq[HorizontalLine] = splitNonConsecutiveHLine(resultHorizontal)
 
