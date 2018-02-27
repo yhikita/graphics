@@ -5,8 +5,7 @@ import java.awt.image.BufferedImage
 import java.awt.Graphics2D
 import java.awt.Color
 import javax.imageio.ImageIO
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.{Files, Path, Paths}
 
 import Hugh.FoundLine
 
@@ -39,7 +38,7 @@ class DetectRectangleSpec extends Specification {
       g.drawLine(1, 1, 1, 3)
 
       DetectRectangle.findLargest(
-        bi, errorAllowance = 2
+        bi, errorAllowance = 2, lengthLimit = Percent(1)
       ) == None
     }
 
@@ -73,6 +72,14 @@ class DetectRectangleSpec extends Specification {
         bi, lineCount = 500, thetaResolution = 20, errorAllowance = 2, lengthLimit = Percent(1)
       )
       rs == Some(Rectangle(2, 0, 5, 2))
+    }
+
+    "Can detect rectangle 2" in {
+      val bi = ImageIO.read(Paths.get("testdata/detectrectangle/test0001.png").toFile)
+      val rs = DetectRectangle.findLargest(
+        bi, lineCount = 500, thetaResolution = 20, errorAllowance = 25, lengthLimit = Percent(50)
+      )
+      rs === Some(Rectangle(94, 46, 498, 288))
     }
   }
 }

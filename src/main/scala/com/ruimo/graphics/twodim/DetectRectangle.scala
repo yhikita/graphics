@@ -136,8 +136,12 @@ object DetectRectangle {
       l.length >= hLineLengthLimit
     }
 
-    val splitVertical: imm.Seq[VerticalLine] = splitNonConsecutiveVLine(resultVertical)
-    val splitHorizontal: imm.Seq[HorizontalLine] = splitNonConsecutiveHLine(resultHorizontal)
+    val splitVertical: imm.Seq[VerticalLine] = splitNonConsecutiveVLine(resultVertical).filter { l =>
+      l.length >= vLineLengthLimit
+    }
+    val splitHorizontal: imm.Seq[HorizontalLine] = splitNonConsecutiveHLine(resultHorizontal).filter { l =>
+      l.length >= hLineLengthLimit
+    }
 
     def findRectangle(splitVertical: imm.Seq[VerticalLine], splitHorizontal: imm.Seq[HorizontalLine]): imm.Seq[Rectangle] = {
       def distance(p0: (Int, Int), p1: (Int, Int)): Double = sqrt(
