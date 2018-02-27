@@ -5,9 +5,10 @@ import java.awt.image.BufferedImage
 
 import com.ruimo.graphics.twodim.Hugh.FoundLineWithDots
 import Degree.toRadian
+import com.ruimo.scoins.Percent
 
 import scala.math.Pi
-import scala.math.{abs, sqrt, min, max, pow}
+import scala.math.{abs, max, min, pow, sqrt}
 import scala.annotation.tailrec
 
 // Detect rectangles. The rectangles should be constracted with horizontal and vertical lines.
@@ -19,7 +20,7 @@ object DetectRectangle {
   def findLargest(
     image: BufferedImage,
     maxAngleToDetect: Double = 1.0, roResolution: Int = 3000, thetaResolution: Int = 200,
-    lineCount: Int = 100, errorAllowance: Int = 10
+    lineCount: Int = 100, errorAllowance: Int = 10, lengthLimit: Percent = Percent(50)
   ): Option[Rectangle] = {
     val rangeVertical = imm.Seq(
       Range(min = toRadian(-maxAngleToDetect), max = toRadian(maxAngleToDetect)),
@@ -45,6 +46,7 @@ object DetectRectangle {
     case class HorizontalLine(dots: imm.Set[(Int, Int)]) extends DetectedLine {
       lazy val left: (Int, Int) = sortedDots.head
       lazy val right: (Int, Int) = sortedDots.last
+      lazy val length = right._1 - left._1
       lazy val y = (left._2 + right._2) / 2
 
       lazy val sortedDots: List[(Int, Int)] = dots.toList.sortBy(_._1)
@@ -71,6 +73,7 @@ object DetectRectangle {
     case class VerticalLine(dots: imm.Set[(Int, Int)]) extends DetectedLine {
       lazy val top: (Int, Int) = sortedDots.head
       lazy val bottom: (Int, Int) = sortedDots.last
+      lazy val length = bottom._2 - top._2
       lazy val x = (top._1 + bottom._1) / 2
 
       lazy val sortedDots: List[(Int, Int)] = dots.toList.sortBy(_._2)
@@ -124,8 +127,14 @@ object DetectRectangle {
     def splitNonConsecutiveVLine(lines: imm.Seq[VerticalLine]): imm.Seq[VerticalLine] = lines.flatMap(_.split)
     def splitNonConsecutiveHLine(lines: imm.Seq[HorizontalLine]): imm.Seq[HorizontalLine] = lines.flatMap(_.split)
 
-    val resultVertical = distinct(foundVertical.take(lineCount).map(l => VerticalLine(l.dots)))
-    val resultHorizontal = distinct(foundHorizontal.take(lineCount).map(l => HorizontalLine(l.dots)))
+    val vLineLengthLimit = lengthLimit.of(image.getHeight)
+    val hLineLengthLimit = lengthLimit.of(image.getWidth)
+    val resultVertical: imm.Seq[VerticalLine] = distinct(foundVertical.take(lineCount).map(l => VerticalLine(l.dots))).filter { l =>
+      l.length >= vLineLengthLimit
+    }
+    val resultHorizontal: imm.Seq[HorizontalLine] = distinct(foundHorizontal.take(lineCount).map(l => HorizontalLine(l.dots))).filter { l =>
+      l.length >= hLineLengthLimit
+    }
 
     val splitVertical: imm.Seq[VerticalLine] = splitNonConsecutiveVLine(resultVertical)
     val splitHorizontal: imm.Seq[HorizontalLine] = splitNonConsecutiveHLine(resultHorizontal)

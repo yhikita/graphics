@@ -14,6 +14,8 @@ import scala.collection.immutable
 import Math.{PI => Pi}
 import java.io.File
 
+import com.ruimo.scoins.Percent
+
 class DetectRectangleSpec extends Specification {
   "DetectRectangle" should {
     "Can detect rectangle 0" in {
@@ -68,7 +70,7 @@ class DetectRectangleSpec extends Specification {
       g.drawLine(8, 7, 8, 8)
 
       val rs = DetectRectangle.findLargest(
-        bi, lineCount = 500, thetaResolution = 20, errorAllowance = 2
+        bi, lineCount = 500, thetaResolution = 20, errorAllowance = 2, lengthLimit = Percent(1)
       )
       rs == Some(Rectangle(2, 0, 5, 2))
     }
