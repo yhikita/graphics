@@ -11,8 +11,13 @@ import scala.math.Pi
 import scala.math.{abs, max, min, pow, sqrt}
 import scala.annotation.tailrec
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 // Detect rectangles. The rectangles should be constracted with horizontal and vertical lines.
 object DetectRectangle {
+  val logger = LoggerFactory.getLogger(getClass)
+
   // maxAngleToDetect, roResolution, thetaResolution are used for hugh conversion.
   // By Hugh conversion, horizontal and vertical lines are found. Take top lineCount lines.
   // Detect largest rectangle from these taken lines.
@@ -38,6 +43,10 @@ object DetectRectangle {
     val foundHorizontal: imm.IndexedSeq[FoundLineWithDots] = Hugh.performImageWithDots(
       image, roResolution, thetaResolution, thRange = rangeHorizontal
     )
+
+    logger.info("foundVertical: size = " + foundVertical.size)
+    logger.info("foundHorizontal: size = " + foundHorizontal.size)
+
     def distinct[T <: DetectedLine](lines: imm.Seq[T]): imm.Seq[T] = {
       val set = new mut.HashSet[T]() ++= lines
 
@@ -70,6 +79,7 @@ object DetectRectangle {
 
     val vLineLengthLimit = lengthLimit.of(image.getHeight)
     val hLineLengthLimit = lengthLimit.of(image.getWidth)
+
     val resultVertical: imm.Seq[VerticalLine] = distinct(foundVertical.take(lineCount).map(l => VerticalLine(l.dots, errorAllowance))).filter { l =>
       l.length >= vLineLengthLimit
     }
@@ -77,12 +87,18 @@ object DetectRectangle {
       l.length >= hLineLengthLimit
     }
 
+    logger.info("resultVertical: size = " + resultVertical.size)
+    logger.info("resultHorizontal: size = " + resultHorizontal.size)
+
     val splitVertical: imm.Seq[VerticalLine] = splitNonConsecutiveVLine(resultVertical).filter { l =>
       l.length >= vLineLengthLimit
     }
+    logger.info("splitVertical: size = " + splitVertical.size)
+
     val splitHorizontal: imm.Seq[HorizontalLine] = splitNonConsecutiveHLine(resultHorizontal).filter { l =>
       l.length >= hLineLengthLimit
     }
+    logger.info("splitHorizontal: size = " + splitHorizontal.size)
 
     def findRectangle(splitVertical: imm.Seq[VerticalLine], splitHorizontal: imm.Seq[HorizontalLine]): imm.Seq[Rectangle] = {
       def distance(p0: (Int, Int), p1: (Int, Int)): Double = sqrt(
