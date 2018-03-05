@@ -81,5 +81,13 @@ class DetectRectangleSpec extends Specification {
       )
       rs === Some(Rectangle(94, 46, 498, 288))
     }
+
+    "Can detect rectangle 3" in {
+      val bi = ImageIO.read(Paths.get("testdata/detectrectangle/test0101.png").toFile)
+      val rs = DetectRectangle.findLargest(
+        bi, lineCount = 500, thetaResolution = 20, errorAllowance = 150, lengthLimit = Percent(50)
+      )
+      rs === Some(Rectangle(50, 58, 518, 299))
+    }
   }
 }
