@@ -25,7 +25,18 @@ object DetectRectangle {
   def findLargest(
     image: BufferedImage,
     maxAngleToDetect: Double = 1.0, roResolution: Int = 3000, thetaResolution: Int = 200,
-    lineCount: Int = 100, errorAllowance: Int = 10, lengthLimit: Percent = Percent(50)
+    lineCount: Int = 100, errorAllowance: Int = 10, lengthLimit: Percent = Percent(50),
+  ): Option[Rectangle] = findLargestWithCombine(
+    image, maxAngleToDetect, roResolution, thetaResolution,
+    lineCount, errorAllowance, lengthLimit,
+    image.getWidth.toDouble / 1000, image.getWidth.toDouble / 1000 / 100
+  )
+
+  def findLargestWithCombine(
+    image: BufferedImage,
+    maxAngleToDetect: Double = 1.0, roResolution: Int = 3000, thetaResolution: Int = 200,
+    lineCount: Int = 100, errorAllowance: Int = 10, lengthLimit: Percent = Percent(50),
+    roCombineLimit: Double, thetaCombineLimit: Double
   ): Option[Rectangle] = {
     val rangeVertical = imm.Seq(
       Range(min = toRadian(-maxAngleToDetect), max = toRadian(maxAngleToDetect)),
@@ -46,6 +57,62 @@ object DetectRectangle {
 
     logger.info("foundVertical: size = " + foundVertical.size)
     logger.info("foundHorizontal: size = " + foundHorizontal.size)
+
+    def combine(lines: imm.IndexedSeq[FoundLineWithDots]): imm.IndexedSeq[FoundLineWithDots] = {
+      val sorted = lines.sortBy(_.ro)
+
+      def merge(f0: FoundLineWithDots, f1: FoundLineWithDots): FoundLineWithDots = {
+        val ndots0 = f0.dots.size
+        val ndots1 = f1.dots.size
+        FoundLineWithDots(
+          (f0.ro * ndots0 + f1.ro * ndots1) / (ndots0 + ndots1),
+          (f0.th * ndots0 + f1.th * ndots1) / (ndots0 + ndots1),
+          f0.dots ++ f1.dots
+        )
+      }
+
+      @tailrec def loop(
+        combined: FoundLineWithDots,
+        results: imm.IndexedSeq[FoundLineWithDots],
+        tail: imm.IndexedSeq[FoundLineWithDots],
+        idx: Int
+      ): imm.IndexedSeq[FoundLineWithDots] = {
+        if (tail.isEmpty) results
+        else {
+          if (idx >= tail.size) {
+            results :+ combined
+          }
+          else if (
+            abs(tail(idx).ro - combined.ro) < roCombineLimit &&
+            abs(tail(idx).th - combined.th) < thetaCombineLimit
+          ) {
+            loop(
+              merge(combined, tail(idx)),
+              results,
+              tail,
+              idx + 1
+            )
+          }
+          else {
+            loop(
+              tail(idx),
+              results :+ combined,
+              tail.drop(idx + 1),
+              0
+            )
+          }
+        }
+      }
+
+      loop(sorted.head, imm.IndexedSeq[FoundLineWithDots](), sorted.tail, 0)
+    }
+
+    val combinedVertical = combine(foundVertical.take(lineCount))
+    val combinedHorizontal = combine(foundHorizontal.take(lineCount))
+println("combinedVertical = " + combinedVertical)
+println("combinedHorizontal = " + combinedHorizontal)
+    logger.info("combinedVertical: size = " + combinedVertical.size)
+    logger.info("combinedHorizontal: size = " + combinedHorizontal.size)
 
     def distinct[T <: DetectedLine](lines: imm.Seq[T]): imm.Seq[T] = {
       val set = new mut.HashSet[T]() ++= lines
@@ -80,10 +147,10 @@ object DetectRectangle {
     val vLineLengthLimit = lengthLimit.of(image.getHeight)
     val hLineLengthLimit = lengthLimit.of(image.getWidth)
 
-    val resultVertical: imm.Seq[VerticalLine] = distinct(foundVertical.take(lineCount).map(l => VerticalLine(l.dots, errorAllowance))).filter { l =>
+    val resultVertical: imm.Seq[VerticalLine] = distinct(combinedVertical.map(l => VerticalLine(l.dots, errorAllowance))).filter { l =>
       l.length >= vLineLengthLimit
     }
-    val resultHorizontal: imm.Seq[HorizontalLine] = distinct(foundHorizontal.take(lineCount).map(l => HorizontalLine(l.dots, errorAllowance))).filter { l =>
+    val resultHorizontal: imm.Seq[HorizontalLine] = distinct(combinedHorizontal.map(l => HorizontalLine(l.dots, errorAllowance))).filter { l =>
       l.length >= hLineLengthLimit
     }
 
