@@ -109,8 +109,6 @@ object DetectRectangle {
 
     val combinedVertical = combine(foundVertical.take(lineCount))
     val combinedHorizontal = combine(foundHorizontal.take(lineCount))
-println("combinedVertical = " + combinedVertical)
-println("combinedHorizontal = " + combinedHorizontal)
     logger.info("combinedVertical: size = " + combinedVertical.size)
     logger.info("combinedHorizontal: size = " + combinedHorizontal.size)
 

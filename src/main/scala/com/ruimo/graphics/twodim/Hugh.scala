@@ -1,7 +1,7 @@
 package com.ruimo.graphics.twodim
 
 import Math.{PI => Pi}
-import Math.sqrt
+import Math.{sqrt, pow}
 import java.nio.file.Path
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -83,6 +83,54 @@ object Hugh {
     }
 
     buf.filter(_.count > 0).sortBy(- _.count).toIndexedSeq
+  }
+
+  def performHighPrecision(
+    img: BufferedImage,
+    roResolution: Int, thResolution: Int,
+    isDot: Int => Boolean = defaultIsDot,
+    thRange: imm.Seq[Range] = imm.Seq(),
+    errorAllowance: Int
+  ): imm.IndexedSeq[FoundLineWithDots] = performHighPrecisionWithCombine(
+    img, roResolution, thResolution, isDot, thRange,
+    errorAllowance,
+    img.getWidth.toDouble / 1000, img.getWidth.toDouble / 1000 / 100
+  )
+
+  def performHighPrecisionWithCombine(
+    img: BufferedImage,
+    roResolution: Int, thResolution: Int,
+    isDot: Int => Boolean = defaultIsDot,
+    thRange: imm.Seq[Range] = imm.Seq(),
+    errorAllowance: Int,
+    roCombineLimit: Double, thetaCombineLimit: Double
+  ): imm.IndexedSeq[FoundLineWithDots] = {
+    def distance(p0: (Int, Int), p1: (Int, Int)): Double = sqrt(
+      pow(p0._1 - p1._1, 2) + pow(p0._2 - p1._2, 2)
+    )
+
+    val lines = performImageWithDots(img, roResolution, thResolution, isDot, thRange)
+    lines.flatMap { l =>
+      if (l.dots.size <= 1) List(l)
+      else {
+        val sortedDots = l.dots.toIndexedSeq.sortBy(p => pow(p._1, 2) + pow(p._2, 2))
+
+        @tailrec def loop(
+          from: (Int, Int), idx: Int, result: imm.Seq[imm.Set[(Int, Int)]]
+        ): imm.IndexedSeq[FoundLineWithDots] =
+          if (idx >= sortedDots.size) {
+            result.map(dots => FoundLineWithDots(l.ro, l.th, dots)).toIndexedSeq
+          } else {
+            if (distance(from, sortedDots(idx)) > errorAllowance) {
+              loop(sortedDots(idx), idx + 1, result :+ sortedDots.slice(0, idx).toSet)
+            } else {
+              loop(from, idx + 1, result)
+            }
+          }
+
+        loop(sortedDots.head, 1, imm.Seq())
+      }
+    }
   }
 
   def perform(
