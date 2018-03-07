@@ -11,8 +11,13 @@ import scala.math.Pi
 import scala.math.{abs, max, min, pow, sqrt}
 import scala.annotation.tailrec
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 // Detect rectangles. The rectangles should be constracted with horizontal and vertical lines.
 object DetectRectangle {
+  val logger = LoggerFactory.getLogger(getClass)
+
   // maxAngleToDetect, roResolution, thetaResolution are used for hugh conversion.
   // By Hugh conversion, horizontal and vertical lines are found. Take top lineCount lines.
   // Detect largest rectangle from these taken lines.
@@ -84,6 +89,7 @@ object DetectRectangle {
     val splitHorizontal: imm.Seq[HorizontalLineWithDots] = splitNonConsecutiveHLine(resultHorizontal).filter { l =>
       l.length >= hLineLengthLimit
     }
+    logger.info("splitHorizontal: size = " + splitHorizontal.size)
 
     def findRectangle(splitVertical: imm.Seq[VerticalLineWithDots], splitHorizontal: imm.Seq[HorizontalLineWithDots]): imm.Seq[Rectangle] = {
       def distance(p0: (Int, Int), p1: (Int, Int)): Double = sqrt(

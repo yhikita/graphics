@@ -5,13 +5,7 @@ import java.awt.image.BufferedImage
 import java.awt.Graphics2D
 import java.awt.Color
 import javax.imageio.ImageIO
-import java.nio.file.{Files, Path, Paths}
-
-import Hugh.FoundLine
-
-import scala.collection.immutable
-import Math.{PI => Pi}
-import java.io.File
+import java.nio.file.Paths
 
 import com.ruimo.scoins.Percent
 
@@ -71,7 +65,7 @@ class DetectRectangleSpec extends Specification {
       val rs = DetectRectangle.findLargest(
         bi, lineCount = 500, thetaResolution = 20, errorAllowance = 2, lengthLimit = Percent(1)
       )
-      rs == Some(Rectangle(2, 0, 5, 2))
+      rs === Some(Rectangle(2, 0, 5, 2))
     }
 
     "Can detect rectangle 2" in {
