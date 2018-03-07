@@ -20,7 +20,8 @@ object DetectRectangle {
   def findLargest(
     image: BufferedImage,
     maxAngleToDetect: Double = 1.0, roResolution: Int = 3000, thetaResolution: Int = 200,
-    lineCount: Int = 100, errorAllowance: Int = 10, lengthLimit: Percent = Percent(50)
+    lineCount: Int = 100, errorAllowance: Int = 10, lengthLimit: Percent = Percent(50),
+    isDot: Int => Boolean = Hugh.brightnessIsDot(200)
   ): Option[Rectangle] = {
     val rangeVertical = imm.Seq(
       Range(min = toRadian(-maxAngleToDetect), max = toRadian(maxAngleToDetect)),
@@ -32,23 +33,23 @@ object DetectRectangle {
     )
 
     val foundVertical: imm.IndexedSeq[FoundLineWithDots] = Hugh.performImageWithDots(
-      image, roResolution, thetaResolution, thRange = rangeVertical
+      image, roResolution, thetaResolution, thRange = rangeVertical, isDot = isDot
     )
 
     val foundHorizontal: imm.IndexedSeq[FoundLineWithDots] = Hugh.performImageWithDots(
-      image, roResolution, thetaResolution, thRange = rangeHorizontal
+      image, roResolution, thetaResolution, thRange = rangeHorizontal, isDot = isDot
     )
-    def distinct[T <: DetectedLine](lines: imm.Seq[T]): imm.Seq[T] = {
+    def distinct[T <: DetectedLineWithDots](lines: imm.Seq[T]): imm.Seq[T] = {
       val set = new mut.HashSet[T]() ++= lines
 
-      def includes(l0: DetectedLine, l1: DetectedLine): Boolean = {
+      def includes(l0: DetectedLineWithDots, l1: DetectedLineWithDots): Boolean = {
         l0 match {
-          case HorizontalLine(seq0, _) => l1 match {
-            case HorizontalLine(seq1, _) => seq1.find((e1: (Int, Int)) => ! seq0(e1)) == None
+          case HorizontalLineWithDots(seq0, _) => l1 match {
+            case HorizontalLineWithDots(seq1, _) => seq1.find((e1: (Int, Int)) => ! seq0(e1)) == None
             case _ => false
           }
-          case VerticalLine(seq0, _) => l1 match {
-            case VerticalLine(seq1, _) => seq1.find((e1: (Int, Int)) => ! seq0(e1)) == None
+          case VerticalLineWithDots(seq0, _) => l1 match {
+            case VerticalLineWithDots(seq1, _) => seq1.find((e1: (Int, Int)) => ! seq0(e1)) == None
             case _ => false
           }
         }
@@ -65,31 +66,31 @@ object DetectRectangle {
       ret
     }
 
-    def splitNonConsecutiveVLine(lines: imm.Seq[VerticalLine]): imm.Seq[VerticalLine] = lines.flatMap(_.split)
-    def splitNonConsecutiveHLine(lines: imm.Seq[HorizontalLine]): imm.Seq[HorizontalLine] = lines.flatMap(_.split)
+    def splitNonConsecutiveVLine(lines: imm.Seq[VerticalLineWithDots]): imm.Seq[VerticalLineWithDots] = lines.flatMap(_.split)
+    def splitNonConsecutiveHLine(lines: imm.Seq[HorizontalLineWithDots]): imm.Seq[HorizontalLineWithDots] = lines.flatMap(_.split)
 
     val vLineLengthLimit = lengthLimit.of(image.getHeight)
     val hLineLengthLimit = lengthLimit.of(image.getWidth)
-    val resultVertical: imm.Seq[VerticalLine] = distinct(foundVertical.take(lineCount).map(l => VerticalLine(l.dots, errorAllowance))).filter { l =>
+    val resultVertical: imm.Seq[VerticalLineWithDots] = distinct(foundVertical.take(lineCount).map(l => VerticalLineWithDots(l.dots, errorAllowance))).filter { l =>
       l.length >= vLineLengthLimit
     }
-    val resultHorizontal: imm.Seq[HorizontalLine] = distinct(foundHorizontal.take(lineCount).map(l => HorizontalLine(l.dots, errorAllowance))).filter { l =>
+    val resultHorizontal: imm.Seq[HorizontalLineWithDots] = distinct(foundHorizontal.take(lineCount).map(l => HorizontalLineWithDots(l.dots, errorAllowance))).filter { l =>
       l.length >= hLineLengthLimit
     }
 
-    val splitVertical: imm.Seq[VerticalLine] = splitNonConsecutiveVLine(resultVertical).filter { l =>
+    val splitVertical: imm.Seq[VerticalLineWithDots] = splitNonConsecutiveVLine(resultVertical).filter { l =>
       l.length >= vLineLengthLimit
     }
-    val splitHorizontal: imm.Seq[HorizontalLine] = splitNonConsecutiveHLine(resultHorizontal).filter { l =>
+    val splitHorizontal: imm.Seq[HorizontalLineWithDots] = splitNonConsecutiveHLine(resultHorizontal).filter { l =>
       l.length >= hLineLengthLimit
     }
 
-    def findRectangle(splitVertical: imm.Seq[VerticalLine], splitHorizontal: imm.Seq[HorizontalLine]): imm.Seq[Rectangle] = {
+    def findRectangle(splitVertical: imm.Seq[VerticalLineWithDots], splitHorizontal: imm.Seq[HorizontalLineWithDots]): imm.Seq[Rectangle] = {
       def distance(p0: (Int, Int), p1: (Int, Int)): Double = sqrt(
         pow(p1._1 - p0._1, 2) + pow(p1._2 - p0._2, 2)
       )
 
-      def rectangle(vl0: VerticalLine, hl0: HorizontalLine, vl1: VerticalLine, hl1: HorizontalLine): Rectangle = {
+      def rectangle(vl0: VerticalLineWithDots, hl0: HorizontalLineWithDots, vl1: VerticalLineWithDots, hl1: HorizontalLineWithDots): Rectangle = {
         val x0 = min(vl0.x, vl1.x)
         val x1 = max(vl0.x, vl1.x)
         val y0 = min(hl0.y, hl1.y)
@@ -100,14 +101,14 @@ object DetectRectangle {
 
       var found: List[Rectangle] = List()
 
-      def init(vls: imm.Seq[VerticalLine], hls: imm.Seq[HorizontalLine]) {
+      def init(vls: imm.Seq[VerticalLineWithDots], hls: imm.Seq[HorizontalLineWithDots]) {
         vls.foreach { vl =>
           findTopLeft(vls, hls, vl)
         }
       }
 
       def findTopLeft(
-        vls: imm.Seq[VerticalLine], hls: imm.Seq[HorizontalLine], line0: VerticalLine
+        vls: imm.Seq[VerticalLineWithDots], hls: imm.Seq[HorizontalLineWithDots], line0: VerticalLineWithDots
       ) {
         hls.foreach { hl =>
           if (distance(hl.left, line0.top) <= errorAllowance) {
@@ -117,8 +118,8 @@ object DetectRectangle {
       }
 
       def findTopRight(
-        vls: imm.Seq[VerticalLine], hls: imm.Seq[HorizontalLine],
-        line0: VerticalLine, line1: HorizontalLine
+        vls: imm.Seq[VerticalLineWithDots], hls: imm.Seq[HorizontalLineWithDots],
+        line0: VerticalLineWithDots, line1: HorizontalLineWithDots
       ) {
         vls.foreach { vl =>
           if (
@@ -131,8 +132,8 @@ object DetectRectangle {
       }
 
       def findBottomRight(
-        vls: imm.Seq[VerticalLine], hls: imm.Seq[HorizontalLine],
-        line0: VerticalLine, line1: HorizontalLine, line2: VerticalLine
+        vls: imm.Seq[VerticalLineWithDots], hls: imm.Seq[HorizontalLineWithDots],
+        line0: VerticalLineWithDots, line1: HorizontalLineWithDots, line2: VerticalLineWithDots
       ) {
         hls.foreach { hl =>
           if (

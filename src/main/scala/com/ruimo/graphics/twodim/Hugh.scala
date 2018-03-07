@@ -9,8 +9,6 @@ import javax.imageio.ImageIO
 import scala.annotation.tailrec
 import scala.collection.{immutable => imm, mutable => mut}
 
-case class Point(x: Int, y: Int)
-
 object Hugh {
   case class FoundLine(ro: Double, th: Double, count: Int)
   case class FoundLineWithDots(ro: Double, th: Double, dots: imm.Set[(Int, Int)]) {
@@ -28,7 +26,9 @@ object Hugh {
     (r + r + r + b + g + g + g + g) / 8 // Y = 0.375 R + 0.5 G + 0.125 B
   }
 
-  def defaultIsDot(rgb: Int): Boolean = rgbToBrightness(rgb) <= 127
+  def brightnessIsDot(brightness: Int)(rgb: Int): Boolean = rgbToBrightness(rgb) <= brightness
+
+  def defaultIsDot: Int => Boolean = brightnessIsDot(127)
 
   private def sinCosTable(thQuantizer: Quantizer): (Array[Double], Array[Double]) = {
     val sin = new Array[Double](thQuantizer.resolution)
