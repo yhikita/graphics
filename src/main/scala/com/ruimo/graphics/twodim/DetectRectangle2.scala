@@ -34,7 +34,10 @@ object DetectRectangle2 {
     def findVerticaLine(p0: Point, p1: Point): imm.Seq[VLine] = {
       def calcX(y: Int): Int = p0.x + (p1.x - p0.x) * (y - p0.y) / (p1.y - p0.y)
       def getVLine(start: Point, lastDotY: Int, dotCount: Int): Option[VLine] =
-        if (dotCount >= lineThreshold.of(lastDotY - start.y + 1)) Some(VLine(start, Point(calcX(lastDotY), lastDotY))) else None
+        if (
+          dotCount >= lineThreshold.of(lastDotY - start.y + 1) &&
+            lastDotY - start.y + 1 >= vLineLengthLimit
+        ) Some(VLine(start, Point(calcX(lastDotY), lastDotY))) else None
 
       def init(y: Int, result: imm.Seq[VLine], dotCount: Int): TailRec[imm.Seq[VLine]] =
         if (y > p1.y) done(result)
@@ -82,7 +85,10 @@ object DetectRectangle2 {
     def findHorizontalLine(p0: Point, p1: Point): imm.Seq[HLine] = {
       def calcY(x: Int): Int = p0.y + (p1.y - p0.y) * (x - p0.x) / (p1.x - p0.x)
       def getHLine(start: Point, lastDotX: Int, dotCount: Int): Option[HLine] =
-        if (dotCount >= lineThreshold.of(lastDotX - start.x + 1)) Some(HLine(start, Point(lastDotX, calcY(lastDotX)))) else None
+        if (
+          dotCount >= lineThreshold.of(lastDotX - start.x + 1) &&
+            lastDotX - start.x + 1 >= hLineLengthLimit
+        ) Some(HLine(start, Point(lastDotX, calcY(lastDotX)))) else None
 
       def init(x: Int, result: imm.Seq[HLine], dotCount: Int): TailRec[imm.Seq[HLine]] =
         if (x > p1.x) done(result)
