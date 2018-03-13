@@ -24,7 +24,7 @@ object DetectRectangle2 {
 
   def findLargest(
     image: BufferedImage, errorAllowance: Int, lengthLimit: Percent = Percent(50),
-    isDot: Int => Boolean = Hugh.brightnessIsDot(200),
+    isDot: Int => Boolean = Hugh.brightnessIsDot(200), lineThreshold: Percent = Percent(70),
     slantAllowance: Int = 2
   ): Option[Rectangle] = {
     val width = image.getWidth
@@ -34,97 +34,103 @@ object DetectRectangle2 {
 
     def findVerticaLine(p0: Point, p1: Point): imm.Seq[VLine] = {
       def calcX(y: Int): Int = p0.x + (p1.x - p0.x) * (y - p0.y) / (p1.y - p0.y)
-      def getVLine(p0: Point, p1: Point): Option[VLine] =
-        if (p1.y - p0.y >= vLineLengthLimit) Some(VLine(p0, p1)) else None
+      def getVLine(start: Point, lastDotY: Int, dotCount: Int): Option[VLine] =
+        if (
+          dotCount >= lineThreshold.of(lastDotY - start.y + 1) &&
+            lastDotY - start.y + 1 >= vLineLengthLimit
+        ) Some(VLine(start, Point(calcX(lastDotY), lastDotY))) else None
 
-      def init(y: Int, result: imm.Seq[VLine]): TailRec[imm.Seq[VLine]] =
+      def init(y: Int, result: imm.Seq[VLine], dotCount: Int): TailRec[imm.Seq[VLine]] =
         if (y > p1.y) done(result)
         else {
           val x = calcX(y)
           if (isDot(image.getRGB(x, y))) {
-            tailcall(onDot(y + 1, Point(x, y), result))
+            tailcall(onDot(y + 1, Point(x, y), result, dotCount + 1))
           } else {
-            tailcall(init(y + 1, result))
+            tailcall(init(y + 1, result, dotCount))
           }
         }
 
-      def onDot(y: Int, start: Point, result: imm.Seq[VLine]): TailRec[imm.Seq[VLine]] =
-        if (y > p1.y) done(result ++ getVLine(start, p1))
+      def onDot(y: Int, start: Point, result: imm.Seq[VLine], dotCount: Int): TailRec[imm.Seq[VLine]] =
+        if (y > p1.y) done(result ++ getVLine(start, y, dotCount))
         else {
           if (isDot(image.getRGB(calcX(y), y))) {
-            tailcall(onDot(y + 1, start, result))
+            tailcall(onDot(y + 1, start, result, dotCount + 1))
           } else {
-            tailcall(dotMissing(y + 1, start, y - 1, result))
+            tailcall(dotMissing(y + 1, start, y - 1, result, dotCount))
           }
         }
 
       def dotMissing(
-        y: Int, start: Point, lastDotY: Int, result: imm.Seq[VLine]
+        y: Int, start: Point, lastDotY: Int, result: imm.Seq[VLine], dotCount: Int
       ): TailRec[imm.Seq[VLine]] =
         if (y > p1.y)
-          done(result ++ getVLine(start, Point(calcX(lastDotY), lastDotY)))
+          done(result ++ getVLine(start, lastDotY, dotCount))
         else {
           if (isDot(image.getRGB(calcX(y), y))) {
-            tailcall(onDot(y + 1, start, result))
+            tailcall(onDot(y + 1, start, result, dotCount + 1))
           } else {
             if ((y - lastDotY) >= errorAllowance) {
               tailcall(
-                init(y + 1, result ++ getVLine(start, Point(calcX(lastDotY), lastDotY)))
+                init(y + 1, result ++ getVLine(start, lastDotY, dotCount), 0)
               )
             } else {
-              tailcall(dotMissing(y + 1, start, lastDotY, result))
+              tailcall(dotMissing(y + 1, start, lastDotY, result, dotCount))
             }
           }
         }
 
-      init(0, imm.Seq()).result
+      init(0, imm.Seq(), 0).result
     }
 
     def findHorizontalLine(p0: Point, p1: Point): imm.Seq[HLine] = {
       def calcY(x: Int): Int = p0.y + (p1.y - p0.y) * (x - p0.x) / (p1.x - p0.x)
-      def getHLine(p0: Point, p1: Point): Option[HLine] =
-        if (p1.x - p0.x >= hLineLengthLimit) Some(HLine(p0, p1)) else None
+      def getHLine(start: Point, lastDotX: Int, dotCount: Int): Option[HLine] =
+        if (
+          dotCount >= lineThreshold.of(lastDotX - start.x + 1) &&
+            lastDotX - start.x + 1 >= hLineLengthLimit
+        ) Some(HLine(start, Point(lastDotX, calcY(lastDotX)))) else None
 
-      def init(x: Int, result: imm.Seq[HLine]): TailRec[imm.Seq[HLine]] =
+      def init(x: Int, result: imm.Seq[HLine], dotCount: Int): TailRec[imm.Seq[HLine]] =
         if (x > p1.x) done(result)
         else {
           val y = calcY(x)
           if (isDot(image.getRGB(x, y))) {
-            tailcall(onDot(x + 1, Point(x, y), result))
+            tailcall(onDot(x + 1, Point(x, y), result, dotCount + 1))
           } else {
-            tailcall(init(x + 1, result))
+            tailcall(init(x + 1, result, dotCount))
           }
         }
 
-      def onDot(x: Int, start: Point, result: imm.Seq[HLine]): TailRec[imm.Seq[HLine]] =
-        if (x > p1.x) done(result ++ getHLine(start, p1))
+      def onDot(x: Int, start: Point, result: imm.Seq[HLine], dotCount: Int): TailRec[imm.Seq[HLine]] =
+        if (x > p1.x) done(result ++ getHLine(start, x, dotCount))
         else {
           if (isDot(image.getRGB(x, calcY(x)))) {
-            tailcall(onDot(x + 1, start, result))
+            tailcall(onDot(x + 1, start, result, dotCount + 1))
           } else {
-            tailcall(dotMissing(x + 1, start, x - 1, result))
+            tailcall(dotMissing(x + 1, start, x - 1, result, dotCount))
           }
         }
-
+ 
       def dotMissing(
-        x: Int, start: Point, lastDotX: Int, result: imm.Seq[HLine]
+        x: Int, start: Point, lastDotX: Int, result: imm.Seq[HLine], dotCount: Int
       ): TailRec[imm.Seq[HLine]] =
         if (x > p1.x) {
-          done(result ++ getHLine(start, Point(lastDotX, calcY(lastDotX))))
+          done(result ++ getHLine(start, lastDotX, dotCount))
         }
         else {
           if (isDot(image.getRGB(x, calcY(x)))) {
-            tailcall(onDot(x + 1, start, result))
+            tailcall(onDot(x + 1, start, result, dotCount + 1))
           } else {
             if ((x - lastDotX) >= errorAllowance) {
-              tailcall(init(x + 1, result ++ getHLine(start, Point(lastDotX, calcY(lastDotX)))))
+              tailcall(init(x + 1, result ++ getHLine(start, lastDotX, dotCount), 0))
             } else {
-              tailcall(dotMissing(x + 1, start, lastDotX, result))
+              tailcall(dotMissing(x + 1, start, lastDotX, result, dotCount))
             }
           }
         }
 
-      init(0, imm.Seq()).result
+      init(0, imm.Seq(), 0).result
     }
 
     val vlines: imm.Set[VLine] =
