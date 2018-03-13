@@ -25,6 +25,7 @@ object DetectRectangle2 {
   def findLargest(
     image: BufferedImage, errorAllowance: Int, lengthLimit: Percent = Percent(50),
     isDot: Int => Boolean = Hugh.brightnessIsDot(200),
+    slantAllowance: Int = 2
   ): Option[Rectangle] = {
     val width = image.getWidth
     val height = image.getHeight
@@ -129,22 +130,30 @@ object DetectRectangle2 {
     val vlines: imm.Set[VLine] =
       (0 until width).foldLeft(imm.Set[VLine]()) { (sum, x) =>
         sum ++ (
-          if (x != 0) findVerticaLine(Point(x, 0), Point(x - 1, height - 1)) else imm.Seq()
+          (1 to slantAllowance).foreach { s =>
+            if (x >= s) findVerticaLine(Point(x, 0), Point(x - s, height - 1)) else imm.Seq()
+          }
         ) ++ (
           findVerticaLine(Point(x, 0), Point(x, height - 1))
         ) ++ (
-          if (x != width - 1) findVerticaLine(Point(x, 0), Point(x + 1, height - 1)) else imm.Seq()
+          (1 to slantAllowance).foreach { s =>
+            if (x < width - s) findVerticaLine(Point(x, 0), Point(x + s, height - 1)) else imm.Seq()
+          }
         )
       }
 
     val hlines: imm.Set[HLine] =
       (0 until height).foldLeft(imm.HashSet[HLine]()) { (sum, y) =>
         sum ++ (
-          if (y != 0) findHorizontalLine(Point(0, y), Point(width - 1, y - 1)) else imm.Seq()
+          (1 to slantAllowance).foreach { s =>
+            if (y >= s) findHorizontalLine(Point(0, y), Point(width - 1, y - s)) else imm.Seq()
+          }
         ) ++ (
           findHorizontalLine(Point(0, y), Point(width - 1, y))
         ) ++ (
-          if (y != height - 1) findHorizontalLine(Point(0, y), Point(width - 1, y + 1)) else imm.Seq()
+          (1 to slantAllowance).foreach { s =>
+            if (y < height - s) findHorizontalLine(Point(0, y), Point(width - 1, y + s)) else imm.Seq()
+          }
         )
       }
 
