@@ -136,14 +136,14 @@ object DetectRectangle2 {
     val vlines: imm.Set[VLine] =
       (0 until width).foldLeft(imm.Set[VLine]()) { (sum, x) =>
         sum ++ (
-          (1 to slantAllowance).foreach { s =>
-            if (x >= s) findVerticaLine(Point(x, 0), Point(x - s, height - 1)) else imm.Seq()
+          (1 to slantAllowance).foldLeft(imm.Set[VLine]()) { (sum, s) =>
+            if (x >= s) sum ++ findVerticaLine(Point(x, 0), Point(x - s, height - 1)) else sum
           }
         ) ++ (
           findVerticaLine(Point(x, 0), Point(x, height - 1))
         ) ++ (
-          (1 to slantAllowance).foreach { s =>
-            if (x < width - s) findVerticaLine(Point(x, 0), Point(x + s, height - 1)) else imm.Seq()
+          (1 to slantAllowance).foldLeft(imm.Set[VLine]()) { (sum, s) =>
+            if (x < width - s) sum ++ findVerticaLine(Point(x, 0), Point(x + s, height - 1)) else sum
           }
         )
       }
@@ -151,14 +151,14 @@ object DetectRectangle2 {
     val hlines: imm.Set[HLine] =
       (0 until height).foldLeft(imm.HashSet[HLine]()) { (sum, y) =>
         sum ++ (
-          (1 to slantAllowance).foreach { s =>
-            if (y >= s) findHorizontalLine(Point(0, y), Point(width - 1, y - s)) else imm.Seq()
+          (1 to slantAllowance).foldLeft(imm.HashSet[HLine]()) { (sum, s) =>
+            if (y >= s) sum ++ findHorizontalLine(Point(0, y), Point(width - 1, y - s)) else sum
           }
         ) ++ (
           findHorizontalLine(Point(0, y), Point(width - 1, y))
         ) ++ (
-          (1 to slantAllowance).foreach { s =>
-            if (y < height - s) findHorizontalLine(Point(0, y), Point(width - 1, y + s)) else imm.Seq()
+          (1 to slantAllowance).foldLeft(imm.HashSet[HLine]()) { (sym, s) =>
+            if (y < height - s) sum ++ findHorizontalLine(Point(0, y), Point(width - 1, y + s)) else sum
           }
         )
       }
