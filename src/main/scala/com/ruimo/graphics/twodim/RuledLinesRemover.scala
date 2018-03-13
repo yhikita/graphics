@@ -3,6 +3,61 @@ package com.ruimo.graphics.twodim
 import java.awt.Color
 import java.awt.image.BufferedImage
 
+/**
+
+(1) Summary
+Delete vertical/horizontal ruled lines in images.
+If correctOverlapping option is set true, overlapping of lines and charactors will be considered.
+
+
+(2) Parameters
+deltaX: (vertical line thickness) / 2
+deltaY: (horizontal line thickness) / 2
+dotRatio: black dot ratio to be regarded as lines
+correctOverlapping: enable to correct overlapping of lines and charactors
+correctDelta: overlapping thickness to consider
+correctDotRatio: black dot ratio to be corrected or not
+isDebug: switch to debug mode (if set true, deleted line is drawn with green)
+
+
+(3) Logic
+As for removal of vertical ruled lines, scan rectangles from left to right and remove them.
+Condition to recognize a vertical ruled line is below.
+
+  (black dots in rectangle area) >= (rectangle area) * dotRatio/100
+    where  (rectangle area) = (deltaX) * 2 * (height of image)
+
+After recognition of ruled line, subsequent processing is below.
+
+(a) correctOverlapping is set false
+Overwrite recognized area with white color(=removed).
+
+(b) correctOverlapping is set true
+Check if each dot is a part of ruled line or not.
+If the condition below is met, the dot is regarded as charactor and isn't removed.
+  (black dots in areaA) >= (areaA) * correctDotRatio/100
+    where  areaA = correctDelta * (correctDelta*2)
+
+Example (correctDelta = 2)
+■: the dot under consideration
+□: other dots
+□□□□□□□
+□□□□□□□
+□□□■□□□
+□□□□□□□
+□□□□□□□
+
+▲: areaA
+□□□□□□□
+□▲▲▲▲□□
+□▲▲▲▲□□
+□□□□□□□
+□□□□□□□
+
+
+Removal of horizontal ruled lines is the same as above.
+
+  */
 class RuledLinesRemover(deltaX: Int = 1, deltaY: Int = 1, dotRatio: Int = 40,
   correctOverlapping: Boolean = true, correctDelta: Int = 2, correctDotRatio: Int = 40,
   isDebug: Boolean = false) {
