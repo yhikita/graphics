@@ -185,7 +185,10 @@ object DetectRectangle2 {
         vls: imm.Set[VLine], hls: imm.Set[HLine], line0: VLine
       ) {
         hls.foreach { hl =>
-          if (distance(hl.p0, line0.p0) <= errorAllowance) {
+          if (
+            hl.p0.x - errorAllowance <= line0.x && line0.x <= hl.p1.x + errorAllowance
+              && line0.p0.y - errorAllowance <= hl.y && hl.y <= line0.p1.y + errorAllowance
+          ) {
             findTopRight(vls, hls, line0, hl)
           }
         }
@@ -196,8 +199,8 @@ object DetectRectangle2 {
       ) {
         vls.foreach { vl =>
           if (
-            vl.x != line0.x &&
-            distance(vl.p0, line1.p1) <= errorAllowance
+            line1.p0.x - errorAllowance <= vl.x && vl.x <= line1.p1.x + errorAllowance
+              && vl.p0.y - errorAllowance <= line1.y && line1.y <= vl.p1.y + errorAllowance
           ) {
             findBottomRight(vls, hls, line0, line1, vl)
           }
@@ -209,9 +212,10 @@ object DetectRectangle2 {
       ) {
         hls.foreach { hl =>
           if (
-            hl.y != line1.y
-              && distance(hl.p1, line2.p1) <= errorAllowance
-              && distance(hl.p0, line0.p1) <= errorAllowance
+            line2.p0.y - errorAllowance <= hl.y && hl.y <= line2.p1.y + errorAllowance &&
+              hl.p0.x - errorAllowance <= line2.x && line2.x <= hl.p1.x + errorAllowance &&
+              line0.p0.y - errorAllowance <= hl.y && hl.y <= line0.p1.y + errorAllowance &&
+              hl.p0.x - errorAllowance <= line0.x && line0.x <= hl.p1.x + errorAllowance
           ) {
             onFound(rectangle(line0, line1, line2, hl))
           }

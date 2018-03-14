@@ -1,11 +1,14 @@
 package com.ruimo.graphics.twodim
 
 import Math.{PI => Pi}
-import Math.{sqrt, pow}
+import Math.{pow, sqrt}
 import java.nio.file.Path
 import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
+
+import com.ruimo.scoins.Percent
+
 import scala.annotation.tailrec
 import scala.collection.{immutable => imm, mutable => mut}
 

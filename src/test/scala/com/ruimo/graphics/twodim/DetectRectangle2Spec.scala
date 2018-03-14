@@ -38,8 +38,8 @@ class DetectRectangleSpec2 extends Specification {
       g.drawLine(1, 1, 1, 3)
 
       DetectRectangle2.findLargest(
-        bi, errorAllowance = 2, lengthLimit = Percent(1)
-      ) == None
+        bi, errorAllowance = 2, lengthLimit = Percent(20), slantAllowance = 0
+      ) === None
     }
 
     "Can detect rectangle 1" in {
@@ -69,7 +69,7 @@ class DetectRectangleSpec2 extends Specification {
       g.drawLine(8, 7, 8, 8)
 
       val rs = DetectRectangle2.findLargest(
-        bi, errorAllowance = 2, lengthLimit = Percent(10)
+        bi, errorAllowance = 2, lengthLimit = Percent(20), slantAllowance = 0
       )
       rs === Some(Rectangle(2, 0, 5, 2))
     }
@@ -91,7 +91,15 @@ class DetectRectangleSpec2 extends Specification {
     }
 
     "Can detect rectangle 4" in {
-      val bi = ImageIO.read(Paths.get("/tmp/test.png").toFile)
+      val bi = ImageIO.read(Paths.get("testdata/detectrectangle/test0102.png").toFile)
+      val rs = DetectRectangle2.findLargest(
+        bi, errorAllowance = 40, lengthLimit = Percent(30),  slantAllowance = 4
+      )
+      rs === Some(Rectangle(150, 213, 852, 611))
+    }
+
+    "Can detect rectangle 4" in {
+      val bi = ImageIO.read(Paths.get("testdata/detectrectangle/test0103.png").toFile)
       val rs = DetectRectangle2.findLargest(
         bi, errorAllowance = 40, lengthLimit = Percent(40), slantAllowance = 8
       )
