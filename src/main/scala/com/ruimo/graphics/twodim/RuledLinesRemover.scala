@@ -68,9 +68,12 @@ class RuledLinesRemover(deltaX: Int = 1, deltaY: Int = 1, dotRatio: Int = 40,
   val BLUE: Int = new Color(0, 0, 255).getRGB()
   val WHITE: Int = new Color(255, 255, 255).getRGB()
 
+  var width: Int = _;
+  var height: Int = _;
+
   def removeRuledLines(inputImage: BufferedImage): BufferedImage = {
-    val width = inputImage.getWidth()
-    val height = inputImage.getHeight()
+    width = inputImage.getWidth()
+    height = inputImage.getHeight()
 
     // color without alpha
     val outputImage: BufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -92,8 +95,6 @@ class RuledLinesRemover(deltaX: Int = 1, deltaY: Int = 1, dotRatio: Int = 40,
   }
 
   private def removeVerticalRuledLines(inputImage: BufferedImage, outputImage: BufferedImage, correctOverlapping: Boolean) = {
-    val width = inputImage.getWidth()
-    val height = inputImage.getHeight()
     for (lineX <- deltaX until width - deltaX) {
       var count = 0
       for (x <- lineX - deltaX until lineX + deltaX) {
@@ -121,8 +122,6 @@ class RuledLinesRemover(deltaX: Int = 1, deltaY: Int = 1, dotRatio: Int = 40,
   }
 
   private def removeHorizontalRuledLines(inputImage: BufferedImage, outputImage: BufferedImage, correctOverlapping: Boolean) = {
-    val width = inputImage.getWidth()
-    val height = inputImage.getHeight()
     for (lineY <- deltaY until height - deltaY) {
       var count = 0
       for (y <- lineY - deltaY until lineY + deltaY) {
@@ -159,7 +158,9 @@ class RuledLinesRemover(deltaX: Int = 1, deltaY: Int = 1, dotRatio: Int = 40,
 
   private def isRuledLine(a: Int, b: Int, image: BufferedImage, isVertical: Boolean): Boolean = {
     var count = 0
-    for (i <- a - correctDelta until a + correctDelta) {
+    val iStart = Math.max(0, a - correctDelta)
+    val iEnd = if (isVertical) Math.min(width, a + correctDelta) else Math.min(height, a + correctDelta)
+    for (i <- iStart until iEnd) {
       for (j <- b - correctDelta until b) {
         if (isVertical && image.getRGB(i, j) == BLACK ) {
           count += 1
