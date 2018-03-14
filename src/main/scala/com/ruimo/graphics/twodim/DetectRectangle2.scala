@@ -217,6 +217,9 @@ object DetectRectangle2 {
               line0.p0.y - errorAllowance <= hl.y && hl.y <= line0.p1.y + errorAllowance &&
               hl.p0.x - errorAllowance <= line0.x && line0.x <= hl.p1.x + errorAllowance
           ) {
+            if (line0.p0.x == 162 || line0.p0.x == 163) {
+              println("found")
+            }
             onFound(rectangle(line0, line1, line2, hl))
           }
         }
