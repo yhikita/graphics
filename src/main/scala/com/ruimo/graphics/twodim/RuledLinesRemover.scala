@@ -95,7 +95,7 @@ class RuledLinesRemover(deltaX: Int = 1, deltaY: Int = 1, dotRatio: Int = 40,
   }
 
   private def removeVerticalRuledLines(inputImage: BufferedImage, outputImage: BufferedImage, correctOverlapping: Boolean) = {
-    for (lineX <- deltaX until width - deltaX) {
+    for (lineX <- deltaX until width - (deltaX-1)) {
       var count = 0
       for (x <- lineX - deltaX until lineX + deltaX) {
         for (y <- 0 until height) {
@@ -122,7 +122,7 @@ class RuledLinesRemover(deltaX: Int = 1, deltaY: Int = 1, dotRatio: Int = 40,
   }
 
   private def removeHorizontalRuledLines(inputImage: BufferedImage, outputImage: BufferedImage, correctOverlapping: Boolean) = {
-    for (lineY <- deltaY until height - deltaY) {
+    for (lineY <- deltaY until height - (deltaY-1)) {
       var count = 0
       for (y <- lineY - deltaY until lineY + deltaY) {
         for (x <- 0 until width) {
